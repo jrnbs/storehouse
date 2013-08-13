@@ -118,7 +118,7 @@ module Storehouse
 
     # remove the headers from the response so the end user is never shown any
     # storehouse content.
-    def strip_storehouse_headers(response, additional_headers)
+    def strip_storehouse_headers(response, additional_headers = {})
       response[1].except!('X-Storehouse-Distribute', 'X-Storehouse', 'X-Storehouse-Expires-At')
       response[1] = response[1].merge(additional_headers)
       response
