@@ -35,7 +35,11 @@ module Storehouse
     def spec
       @spec ||= begin
         full_config = YAML.load_file(config_path) || {}
-        full_config[app_env] || {}
+        config = full_config[app_env] || {}
+        if config["backend"] == "redis" && File.exists?(redis_config_path)
+          config["connections"]["host"] = YAML.load_file(redis_config_path)["host"]
+        end
+        config
       end
     end
 
@@ -144,6 +148,10 @@ module Storehouse
 
     def config_path
       File.join(app_root, 'config', 'storehouse.yml')
+    end
+
+    def redis_config_path
+      File.join(app_root, 'config', 'redis.yml')
     end
 
   end

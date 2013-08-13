@@ -32,6 +32,7 @@ module Storehouse
 
       response  = nil
       store     = true
+      additional_headers = {}
       object    = Storehouse.read(path)
 
       # failure occurred, don't attempt to store because 
@@ -44,6 +45,7 @@ module Storehouse
       # even if an object exists in the cache we still conduct
       # the request and overwrite the previous value.
       elsif reheating?(env)
+        additional_headers["X-Storehouse-Reheat"] = "1" 
         strip_reheat_params(env)
         response = yield
 
@@ -59,8 +61,9 @@ module Storehouse
 
       # we get to use the cached content!
       else
-        response = object.rack_response
+        additional_headers["X-Storehouse-Hit"] = "1" 
 
+        response = object.rack_response
         # if we're in panic mode, we want to distribute this content to disk
         observe_panic_mode(response[1])
         store = false
@@ -75,7 +78,7 @@ module Storehouse
       end
 
       # remove the storehouse headers from the actual response
-      strip_storehouse_headers(response)
+      strip_storehouse_headers(response, additional_headers)
     end
 
 
@@ -115,8 +118,9 @@ module Storehouse
 
     # remove the headers from the response so the end user is never shown any
     # storehouse content.
-    def strip_storehouse_headers(response)
+    def strip_storehouse_headers(response, additional_headers)
       response[1].except!('X-Storehouse-Distribute', 'X-Storehouse', 'X-Storehouse-Expires-At')
+      response[1] = response[1].merge(additional_headers)
       response
     end
 

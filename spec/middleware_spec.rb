@@ -48,6 +48,8 @@ describe Storehouse::Middleware do
 
     result = middleware.call(normal_request)
 
+    object.headers = object.headers.merge({"X-Storehouse-hit" => "1"})
+
     result.should eql(object.rack_response)
   end
 
