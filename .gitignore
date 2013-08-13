@@ -19,3 +19,5 @@ tmp
 *.example.yml
 *.log
 cache/**/*
+Guardfile
+Gemfile
