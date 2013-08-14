@@ -26,7 +26,7 @@ module Storehouse
       path_string   = env['PATH_INFO']
       path_string ||= env['REQUEST_URI']
 
-      path = [env['SERVER_NAME'], URI.parse(path_string).path].join("-")  rescue nil
+      path = [env['SERVER_NAME'], URI.parse(path_string).path].join("")  rescue nil
 
       return yield if ignore?(path, env)
 

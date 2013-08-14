@@ -48,7 +48,9 @@ describe Storehouse::Middleware do
 
     result = middleware.call(normal_request)
 
-    object.headers = object.headers.merge({"X-Storehouse-hit" => "1"})
+    object.headers = object.headers.merge({"X-Storehouse-Path" => "/path/for/something"})
+    object.headers = object.headers.merge({"X-Storehouse-Hit" => "1"})
+
 
     result.should eql(object.rack_response)
   end
@@ -72,13 +74,14 @@ describe Storehouse::Middleware do
 
     status, headers, content = middleware.call(cache_request)
 
-    headers.keys.should =~ ["Content-Type", "Content-Length"]
+    headers.keys.should =~ ["Content-Type", "Content-Length", "X-Storehouse-Path"]
   end
 
   it 'should cache the response with an expiration and drop storehouse headers' do
     Storehouse.should_receive(:write).with('/path/for/something', 200, {}, 'test response', '123456')
     status, headers, content = middleware.call(expire_request)
-    headers.keys.should be_empty
+    headers.keys.count.should == 1
+#    headers.keys.eject("X-Storehouse-Path").should be_empty
   end
 
   it 'should distribute and keep storehouse distribution header' do
