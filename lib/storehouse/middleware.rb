@@ -26,13 +26,13 @@ module Storehouse
       path_string   = env['PATH_INFO']
       path_string ||= env['REQUEST_URI']
 
-      path = URI.parse(path_string).path rescue nil
+      path = [env['SERVER_NAME'], URI.parse(path_string).path].join("-")  rescue nil
 
       return yield if ignore?(path, env)
 
       response  = nil
       store     = true
-      additional_headers = {}
+      additional_headers = {"X-Storehouse-Path" => path.to_s }
       object    = Storehouse.read(path)
 
       # failure occurred, don't attempt to store because 
