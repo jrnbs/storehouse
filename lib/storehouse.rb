@@ -37,7 +37,7 @@ module Storehouse
         full_config = YAML.load_file(config_path) || {}
         config = full_config[app_env] || {}
         if config["backend"] == "redis" && File.exists?(redis_config_path)
-          config["connections"]["host"] = YAML.load_file(redis_config_path)["host"]
+          config["connections"]["host"] = YAML.load_file(redis_config_path)[app_env]["host"]
         end
         config
       end
