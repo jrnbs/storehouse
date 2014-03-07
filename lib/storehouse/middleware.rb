@@ -22,7 +22,7 @@ module Storehouse
     protected
 
     def storehouse_response(env)
-
+      count("call")
       path_string   = env['PATH_INFO']
       path_string ||= env['REQUEST_URI']
 
@@ -33,11 +33,13 @@ module Storehouse
       response  = nil
       store     = true
       additional_headers = {"X-Storehouse-Path" => path.to_s }
+      count("read")
       object    = Storehouse.read(path)
 
       # failure occurred, don't attempt to store because 
       # we don't want to continue hitting a broken store
       if object.nil?
+        count("miss")
         response = yield
         store = false
 
@@ -47,20 +49,24 @@ module Storehouse
       elsif reheating?(env)
         additional_headers["X-Storehouse-Reheat"] = "1" 
         strip_reheat_params(env)
+        count("reheat")
         response = yield
 
       # if the object we got back had no content we don't return an empty response
       elsif object.blank?
+        count("miss")
         response = yield
 
       # if the object is received and it is expired but we are ok
       # rendering expired content (crawler)
       elsif object.expired? && !render_expired?(env)
         Storehouse.postpone(object) if Storehouse.postpone?
+        count("expired")
         response = yield
 
       # we get to use the cached content!
       else
+        count("hit")
         additional_headers["X-Storehouse-Hit"] = "1" 
 
         response = object.rack_response
@@ -81,6 +87,12 @@ module Storehouse
       strip_storehouse_headers(response, additional_headers)
     end
 
+    def count(event)
+      if defined? METRICS
+        METRICS.increment("storehouse.#{event}")
+      end
+    end
+
 
     def attempt_to_store(path, response)
 
@@ -93,7 +105,7 @@ module Storehouse
 
         # allow distribution if we're panicing
         observe_panic_mode(headers)
-
+        count("store")
         # write the content to our store
         Storehouse.write(path, status, headers_to_store(headers), string_content(content), expiration)
       end
