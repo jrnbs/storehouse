@@ -86,7 +86,7 @@ module Storehouse
     end
 
     def cache_param_subdomains
-      return spec['cache_param_subdomains']
+      return spec['cache_param_subdomains'] || []
     end
 
     def reheat_param
