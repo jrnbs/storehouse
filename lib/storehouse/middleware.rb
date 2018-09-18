@@ -25,14 +25,14 @@ module Storehouse
       path_string   = env['PATH_INFO']
       path_string ||= env['REQUEST_URI']
 
-      path = [ env['SERVER_PROTOCOL'], "|", env['SERVER_NAME'], URI.parse(path_string).path ].join("")  rescue nil
-      path = path.to_s + "?" + env['QUERY_STRING'].to_s                                                 if cached_query_subdomain?(env)
+      path = [ env['rack.url_scheme'] + "://", env['SERVER_NAME'], URI.parse(path_string).path ].join("")  rescue nil
+      path = path.to_s + "?" + env['QUERY_STRING'].to_s                                                    if cached_query_subdomain?(env)
 
       return yield if ignore?(path, env)
 
       response  = nil
       store     = true
-      additional_headers = {"X-Storehouse-Path" => path.to_s }
+      additional_headers = { "X-Storehouse-Path" => path.to_s }
       object    = Storehouse.read(path)
 
       # failure occurred, don't attempt to store because 
