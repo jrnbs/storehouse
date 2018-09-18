@@ -104,7 +104,7 @@ describe Storehouse::Middleware do
     middleware.call(invalid_subdomain_request)
   end
 
-  it 'should attemt to read if a good subdomain is provided' do
+  it 'should attempt to read if a good subdomain is provided' do
     Storehouse.should_receive(:read).once
     gem_config(:subdomain)
     middleware.call(valid_subdomain_request)

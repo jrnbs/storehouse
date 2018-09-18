@@ -80,6 +80,7 @@ With this simple config you'll be up and running. The rest of the options are sh
       reheat_param: reheat_cache             # the param to pass to reheat the cache manually
       postpone: false                        # when encountering an expired page, defer the expiration for other users
       ignore_params: false                   # serve cached content to requests with query strings
+      cache_param_subdomains: [ "widget.pr.co", "example.com" ] # a list of subdomains (or domains) whose pages should be cached even if they have params
       ignore_headers: [Set-Cookie, Other]    # headers to strip during storage, by default [Set-Cookie]
       serve_expired_content_to: Bot          # the user agent matcher for serving expired content
       panic_path: 'public/panic.txt'         # the relative path (from project root) for a panic file
@@ -100,6 +101,10 @@ Postponing is a technique Storehouse uses to keep your app from undergoing an av
 ### ignore_params
 
 If this is set to `true`, Storehouse will serve cached content even if params are passed. This is especially useful for utm-like params or params which are handled in a previous middleware and essentially ignored in your app.
+
+### cache_param_subdomains
+Here you can pass in an array of domains or subdomains who's pages will be served cached content even if they have query params passed in. This is useful if some subdomains have paths with query params which actually change the content on the page, and other subdomains do not. For example, we have the heavily trafficked URL `widget.pr.co?src=12345`. Here the `src` param is important, and if it changes different content is returned in response, and so we want to cache the response to `widget.pr.co?src=12345`. This is in contrast to a different, lightly trafficked, subdomain: news.pr.co. Here we don't want to cache the page if it has params.Thus we pass in `cache_param_subdomains: [ "widget.pr.co" ]` to cache pages like `widget.pr.co?src=12345` and not pages like `news.pr.co?page=3`
+
 
 ### ignore_headers
 

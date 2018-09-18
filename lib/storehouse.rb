@@ -85,6 +85,10 @@ module Storehouse
       !!spec['ignore_params']
     end
 
+    def cache_param_subdomains
+      return spec['cache_param_subdomains']
+    end
+
     def reheat_param
       spec['reheat_param']
     end

@@ -25,7 +25,8 @@ module Storehouse
       path_string   = env['PATH_INFO']
       path_string ||= env['REQUEST_URI']
 
-      path = [env['SERVER_NAME'], URI.parse(path_string).path].join("")  rescue nil
+      path = [ env['SERVER_PROTOCOL'], "|", env['SERVER_NAME'], URI.parse(path_string).path ].join("")  rescue nil
+      path = path.to_s + "?" + env['QUERY_STRING'].to_s                                                 if cached_query_subdomain?(env)
 
       return yield if ignore?(path, env)
 
@@ -157,7 +158,7 @@ module Storehouse
       return true if path =~ /\/assets\//
 
       # ignore if the query string isn't wanted
-      return true if !Storehouse.ignore_params? && env['QUERY_STRING'].present? && !reheating?(env)
+      return true if !Storehouse.ignore_params? && env['QUERY_STRING'].present? && !reheating?(env) && !cached_query_subdomain?(env)
 
       false
     end
@@ -180,6 +181,7 @@ module Storehouse
     end
 
 
+    # returns true if there is the query reheat_cache=X where X is any value
     def reheating?(env)
       exp = reheat_expression
       exp && !!(env['QUERY_STRING'] =~ exp)
@@ -197,6 +199,10 @@ module Storehouse
       suffix = Storehouse.ignore_params? ? nil : '([^&]+)?$'
 
       /#{prefix}#{param}#{suffix}/
+    end
+
+    def cached_query_subdomain?(env)
+      return Storehouse.cache_param_subdomains.include?(env['SERVER_NAME'])
     end
 
     # if we're panicing we should distribute all responses
